@@ -36,6 +36,7 @@ To get the project up and running on your local machine, follow these steps:
 ### 1. Install dependencies:
 ```bash
 yarn install
+```
 
 ### 2. Push the database schema:
 ```bash
