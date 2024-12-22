@@ -109,13 +109,11 @@ export function TodoItem({ todo, showStatus = true }: ITodoItemProps) {
               <div
                 className={cn(
                   "uppercase", // Always apply this class
-                  "text-black", // Set the text color to white for better contrast with the background
                   "rounded-md", // Add border radius,
-                  "p-2","text-sm",
-                  columnStyles[status]?.color
+                  "p-2",
+                  columnStyles[status].color
                 )}
               >
-                
                 {todo?.status}
               </div>
             )}

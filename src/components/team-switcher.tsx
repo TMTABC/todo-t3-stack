@@ -8,11 +8,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { ThemeSwitch } from "./theme-switch";
 
 export function CreatorInformation() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
+      
         <SidebarMenuButton
           size="lg"
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
@@ -24,7 +26,9 @@ export function CreatorInformation() {
             <span className="truncate font-semibold">Nabin Achar</span>
             <span className="truncate text-xs">@thechotoprogrammer</span>
           </div>
-          <ChevronsUpDown className="ml-auto" />
+
+          <ThemeSwitch/>
+         
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
