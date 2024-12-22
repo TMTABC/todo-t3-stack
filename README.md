@@ -3,7 +3,9 @@
 A modern Todo application built using the powerful T3 stack to manage and organize your tasks efficiently. With advanced features like Todo charts, Kanban view, and a theme switcher, this app is perfect for task management.
 
 
-## 📸 Preview
+## 📸 Previ
+
+https://github.com/user-attachments/assets/9a794f5d-b81a-4b82-b5d3-e216cf5d476e
 
 ![Home page](./1.png)
 ![Kanban](./2.png)
