@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { z } from "zod";
-
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 
 export const postRouter = createTRPCRouter({
@@ -12,11 +12,53 @@ export const postRouter = createTRPCRouter({
     }),
 
   create: publicProcedure
-    .input(z.object({ name: z.string().min(1) }))
+    .input(z.object({ name: z.string().min(1), description: z.string() }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.post.create({
         data: {
           name: input.name,
+          description: input.description,
+        },
+      });
+    }),
+
+  update: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string().min(1),
+        description: z.string(),
+        status: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.post.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          name: input.name,
+          description: input.description,
+          status: input.status,
+        },
+      });
+    }),
+
+  // update status
+  updateStatus: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        status: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.post.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          status: input.status,
         },
       });
     }),
@@ -29,22 +71,64 @@ export const postRouter = createTRPCRouter({
     return post ?? null;
   }),
 
-  // get all todos
-  getAll:publicProcedure.query(async({ctx})=>{
-    const list=await ctx.db.post.findMany()
+  // Get all todos
+  getAll: publicProcedure.query(async ({ ctx }) => {
+    const list = await ctx.db.post.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
-    return list??null
-
+    return list ?? null;
   }),
 
-  // delete a todo
+  // Delete a todo
   delete: publicProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.post.delete({
-        where:{
-          id:input.id
-        }
+        where: {
+          id: input.id,
+        },
       });
     }),
+
+  // Get count by status
+  getStatusCounts: publicProcedure.query(async ({ ctx }) => {
+    try {
+      const counts = await ctx.db.post.groupBy({
+        by: ["status"],
+        _count: {
+          status: true,
+        },
+      });
+
+      // Initialize the counts for each status
+      const statusCounts: Record<string, number> = {
+        completed: 0,
+        todo: 0,
+        inProgress: 0,
+      };
+
+      // Safely iterate over the result and assign the counts
+      counts.forEach((item) => {
+        if (item.status === "completed") {
+          statusCounts.completed = item._count.status;
+        } else if (item.status === "todo") {
+          statusCounts.todo = item._count.status;
+        } else if (item.status === "inProgress") {
+          statusCounts.inProgress = item._count.status;
+        }
+      });
+
+      return statusCounts;
+    } catch (error) {
+      console.error("Error fetching status counts:", error);
+      return {
+        completed: 0,
+        todo: 0,
+        inProgress: 0,
+      };
+    }
+  }),
 });
