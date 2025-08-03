@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn, columnStyles } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 
 interface ITodoItemProps {
   todo: {
@@ -37,8 +38,10 @@ interface ITodoItemProps {
     id: number;
     status: string;
     description: string;
+    priority: string;
     createdAt: Date;
     updatedAt: Date;
+    deadline?: string | null; // hoặc Date nếu bạn đã parse
   };
   showStatus?: boolean;
 }
@@ -53,6 +56,8 @@ export function TodoItem({ todo, showStatus = true }: ITodoItemProps) {
   const [name, setNewName] = React.useState(todo.name);
   const [description, setNewDescription] = React.useState(todo.description);
   const [status, setNewStatus] = React.useState(todo.status);
+  const [priority, setNewPriority] = React.useState(todo.priority);
+  const [deadline, setDeadline] = React.useState("");
 
   const DeleteMutation = api.post.delete.useMutation({
     onSuccess: async () => {
@@ -74,6 +79,15 @@ export function TodoItem({ todo, showStatus = true }: ITodoItemProps) {
       });
       setEditDialogOpen(false);
     },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description:
+          error.data?.zodError?.fieldErrors.name?.[0] ??
+          "Failed to update todo.",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleDelete = () => {
@@ -88,6 +102,8 @@ export function TodoItem({ todo, showStatus = true }: ITodoItemProps) {
       name,
       description,
       status,
+      priority,
+      deadline: deadline ? new Date(deadline).toISOString() : undefined,
     });
   };
 
@@ -102,9 +118,15 @@ export function TodoItem({ todo, showStatus = true }: ITodoItemProps) {
           <div>
             <CardTitle>{todo.name}</CardTitle>
             <CardDescription>{todo.description}</CardDescription>
+            {todo.deadline && (
+              <div className="text-sm text-gray-500">
+                Deadline: {new Date(todo.deadline).toLocaleDateString()}
+              </div>
+            )}
           </div>
 
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-2">
+            <Badge variant="outline">{todo.priority}</Badge>
             {showStatus && (
               <div
                 className={cn(
@@ -166,6 +188,33 @@ export function TodoItem({ todo, showStatus = true }: ITodoItemProps) {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div>
+                    <Select
+                      value={priority}
+                      onValueChange={(e) => setNewPriority(e)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Priority</SelectLabel>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="deadline">Deadline</Label>
+                    <Input
+                      type="date"
+                      id="deadline"
+                      value={deadline}
+                      onChange={e => setDeadline(e.target.value)}
+                    />
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button
@@ -175,6 +224,7 @@ export function TodoItem({ todo, showStatus = true }: ITodoItemProps) {
                     Cancel
                   </Button>
                   <Button
+                    disabled={!name}
                     loading={UpdateMutation.isPending}
                     loadingText="Updating..."
                     onClick={handleEdit}

@@ -14,10 +14,21 @@ import { Label } from "@/components/ui/label";
 import { api } from "@/trpc/react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function NewTodoForm() {
   const [name, setName] = React.useState("");
   const [description, setDescription] = React.useState("");
+  const [priority, setPriority] = React.useState("medium");
+  const [deadline, setDeadline] = React.useState("");
   const { toast } = useToast();
   const utils = api.useUtils();
   const createPost = api.post.create.useMutation({
@@ -25,9 +36,19 @@ export function NewTodoForm() {
       await utils.post.invalidate();
       setName("");
       setDescription("");
+      setPriority("medium");
       toast({
         title: "Added successfully",
         variant: "default",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description:
+          error.data?.zodError?.fieldErrors.name?.[0] ??
+          "Failed to create todo.",
+        variant: "destructive",
       });
     },
   });
@@ -36,7 +57,12 @@ export function NewTodoForm() {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        createPost.mutate({ name,description });
+        createPost.mutate({
+          name,
+          description,
+          priority,
+          deadline: deadline ? new Date(deadline).toISOString() : undefined,
+        });
       }}
     >
       <Card>
@@ -66,6 +92,31 @@ export function NewTodoForm() {
                 placeholder="Enter a brief description of your task"
               />
             </div>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="priority">Priority</Label>
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger id="priority">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Priority</SelectLabel>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="deadline">Deadline</Label>
+              <Input
+                type="date"
+                id="deadline"
+                value={deadline}
+                onChange={e => setDeadline(e.target.value)}
+              />
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
@@ -75,11 +126,19 @@ export function NewTodoForm() {
             onClick={() => {
               setName("");
               setDescription("");
+              setPriority("medium");
             }}
           >
             Clear
           </Button>
-          <Button type="submit" loading={createPost.isPending} loadingText="Adding...">Add Todo</Button>
+          <Button
+            type="submit"
+            disabled={!name || createPost.isPending}
+            loading={createPost.isPending}
+            loadingText="Adding..."
+          >
+            Add
+          </Button>
         </CardFooter>
       </Card>
     </form>

@@ -12,12 +12,21 @@ export const postRouter = createTRPCRouter({
     }),
 
   create: publicProcedure
-    .input(z.object({ name: z.string().min(1), description: z.string() }))
+    .input(
+      z.object({
+        name: z.string().min(1),
+        description: z.string(),
+        priority: z.string(),
+        deadline: z.string().optional(), // nhận ISO string từ client
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       return ctx.db.post.create({
         data: {
           name: input.name,
           description: input.description,
+          priority: input.priority,
+          deadline: input.deadline ? new Date(input.deadline) : null,
         },
       });
     }),
@@ -29,6 +38,8 @@ export const postRouter = createTRPCRouter({
         name: z.string().min(1),
         description: z.string(),
         status: z.string(),
+        priority: z.string(),
+        deadline: z.string().optional(), // nhận ISO string từ client
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -40,6 +51,8 @@ export const postRouter = createTRPCRouter({
           name: input.name,
           description: input.description,
           status: input.status,
+          priority: input.priority,
+          deadline: input.deadline ? new Date(input.deadline) : null,
         },
       });
     }),
